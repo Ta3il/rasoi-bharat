@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rasoi Bharat | Explore India's Culinary Heritage</title>
+    <style>
+        :root {
+            --bg: #FFFBF0;
+            --card: #FFFFFF;
+            --card-border: #F0E8D5;
+            --text: #1A1008;
+            --text-muted: #7A6855;
+            --accent: #FF9933;
+            --green: #138808;
+            --red: #C62828;
+            --surface: #FFF8EE;
+            --nav-bg: rgba(255, 251, 240, 0.96);
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0D0D0D;
+            --card: #1A1A1A;
+            --card-border: #2D2D2D;
+            --text: #F5F0E8;
+            --text-muted: #A09080;
+            --surface: #151515;
+            --nav-bg: rgba(13, 13, 13, 0.96);
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+
+        /* Navbar */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1000;
+            background: var(--nav-bg);
+            backdrop-filter: blur(12px);
+            height: 64px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+        nav.scrolled {
+            border-bottom: 1px solid var(--card-border);
+            box-shadow: 0 2px 20px var(--shadow);
+        }
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            flex: 1;
+            max-width: 420px;
+            display: none; /* Hidden on mobile by default in original JSX */
+        }
+        @media (min-width: 768px) {
+            .search-container { display: block; }
+        }
+        .search-container input {
+            width: 100%;
+            padding: 10px 20px 10px 44px;
+            border-radius: 30px;
+            border: 1.5px solid var(--card-border);
+            background: var(--card);
+            color: var(--text);
+            outline: none;
+            font-size: 14px;
+            transition: border 0.2s;
+        }
+        .search-container .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+        .search-results {
+            position: absolute;
+            top: 110%;
+            left: 0; right: 0;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px var(--shadow);
+            z-index: 100;
+            overflow: hidden;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .search-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .search-item:hover { background: var(--surface); }
+        .search-item img { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 30px;
+            border: 1.5px solid var(--card-border);
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--red));
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+        }
+        .btn-round { padding: 8px; border-radius: 50%; }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            min-height: 560px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            text-align: center;
+        }
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: url('https://images.unsplash.com/photo-1596547609652-9cf5d8d76921?w=1600&q=80') center/cover;
+            filter: brightness(0.35);
+        }
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(160deg, rgba(255, 153, 51, 0.13) 0%, rgba(198, 40, 40, 0.26) 50%, rgba(26, 10, 0, 0.66) 100%);
+        }
+        .hero-pattern {
+            position: absolute; inset: 0; opacity: 0.04;
+            background-image: repeating-linear-gradient(45deg, #FF9933 0px, #FF9933 2px, transparent 2px, transparent 20px), repeating-linear-gradient(-45deg, #FF9933 0px, #FF9933 2px, transparent 2px, transparent 20px);
+        }
+        .hero-content {
+            position: relative;
+            padding: 0 24px;
+            max-width: 720px;
+            z-index: 1;
+        }
+        .hero-badge {
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 30px;
+            background: rgba(255, 153, 51, 0.2);
+            border: 1px solid rgba(255, 153, 51, 0.4);
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+        .hero h1 {
+            font-size: clamp(32px, 7vw, 72px);
+            font-weight: 900;
+            color: #FFF;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--accent), #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            font-size: clamp(15px, 2.5vw, 20px);
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            background: linear-gradient(135deg, var(--accent), var(--red));
+            padding: 28px 20px;
+        }
+        .stats-grid {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            text-align: center;
+        }
+        .stat-item h3 { font-size: clamp(24px, 4vw, 40px); font-weight: 900; color: #fff; }
+        .stat-item p { font-size: 13px; color: rgba(255, 255, 255, 0.8); }
+
+        /* Section Layout */
+        .section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+        .section-header { margin-bottom: 40px; }
+        .section-title { font-size: clamp(24px, 4vw, 36px); font-weight: 800; margin-bottom: 8px; }
+        .section-sub { font-size: 15px; color: var(--text-muted); }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        /* Card */
+        .card {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px var(--shadow);
+        }
+        .card-img { height: 200px; position: relative; overflow: hidden; }
+        .card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .card:hover .card-img img { transform: scale(1.08); }
+        .card-body { padding: 18px; }
+        .card-body h3 { font-weight: 800; font-size: 18px; margin-bottom: 6px; }
+        .card-body p { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px; height: 3.2em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* Badges & Tags */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .badge-veg { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
+        .badge-nonveg { background: #FBE9E7; color: #BF360C; border: 1px solid #FFAB91; }
+        .badge-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .badge-veg .badge-dot { background: #4CAF50; border: 2px solid #2E7D32; }
+        .badge-nonveg .badge-dot { background: #FF5722; border: 2px solid #BF360C; }
+
+        .tag { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; background: rgba(255, 153, 51, 0.1); color: var(--accent); }
+
+        /* Footer */
+        footer {
+            background: #1A0A00;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 60px 20px 20px;
+            margin-top: 60px;
+        }
+        .footer-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        .footer-logo { font-size: 24px; font-weight: 800; color: var(--accent); margin-bottom: 12px; }
+        .footer-title { font-weight: 700; color: #fff; margin-bottom: 16px; font-size: 15px; }
+        .footer-link { display: block; padding: 4px 0; font-size: 14px; cursor: pointer; transition: color 0.2s; }
+        .footer-link:hover { color: var(--accent); }
+
+        /* Loading Overlay */
+        #loader {
+            position: fixed; inset: 0; background: var(--bg);
+            display: none; flex-direction: column; align-items: center; justifyContent: center;
+            z-index: 9999; gap: 16px;
+        }
+        #loader .icon { font-size: 48px; animation: spin 1s linear infinite; }
+
+        /* Detail Page Specific */
+        .banner { position: relative; height: 380px; overflow: hidden; }
+        .banner img { width: 100%; height: 100%; object-fit: cover; }
+        .banner-overlay { position: absolute; inset: 0; }
+        .banner-content { position: absolute; bottom: 40px; left: 40px; right: 40px; color: #fff; }
+
+        /* Scroll Progress */
+        #scroll-p { position: absolute; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--red)); width: 0%; z-index: 1001; }
+
+        /* Back to top */
+        #back-top {
+            position: fixed; bottom: 28px; right: 28px; width: 48px; height: 48px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--red)); border: none; cursor: pointer;
+            display: none; align-items: center; justifyContent: center;
+            box-shadow: 0 4px 20px rgba(255, 153, 51, 0.4); z-index: 500; color: #fff;
+        }
+
+        /* Utils */
+        .spicy { display: flex; gap: 2px; }
+    </style>
+</head>
+<body>
+    <div id="scroll-p"></div>
+    <nav id="navbar">
+        <div class="nav-inner">
+            <div class="logo" onclick="app.navigate('home')">🍛 Rasoi Bharat</div>
+            <div class="search-container">
+                <span class="search-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg></span>
+                <input type="text" id="main-search" placeholder="Search dishes, states..." onfocus="app.handleSearch(this.value)" oninput="app.handleSearch(this.value)">
+                <div id="search-results" class="search-results" style="display: none;"></div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="btn btn-round" onclick="app.toggleTheme()">
+                    <span id="theme-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" /></svg></span>
+                </button>
+                <button class="btn btn-round" onclick="app.navigate('favs')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="loader"><div class="icon">🍛</div><div style="font-weight: 600;">Spicing up your experience...</div></div>
+
+    <main id="app-root"></main>
+
+    <footer id="footer"></footer>
+
+    <button id="back-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15" /></svg>
+    </button>
+
+    <script>
+        const STATES_DATA = [
+            { id: "rajasthan", name: "Rajasthan", image: "https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&q=80", description: "Land of royals & rich gravies", color: "#C62828", emoji: "🏰" },
+            { id: "kerala", name: "Kerala", image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600&q=80", description: "God's Own Country & coconut curries", color: "#2E7D32", emoji: "🌴" },
+            { id: "punjab", name: "Punjab", image: "https://images.unsplash.com/photo-1573821663912-569905455b1c?w=600&q=80", description: "Tandoor land of butter & spice", color: "#FF8F00", emoji: "🌾" },
+            { id: "gujarat", name: "Gujarat", image: "https://tinyurl.com/c29b8yum", description: "Sweet, salty, and spicy melange", color: "#E65100", emoji: "🎭" },
+            { id: "westbengal", name: "West Bengal", image: "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=600&q=80", description: "Land of mishti doi & hilsa fish", color: "#1565C0", emoji: "🐟" },
+            { id: "tamilnadu", name: "Tamil Nadu", image: "https://rb.gy/lb7r41", description: "South's spicy rice traditions", color: "#6A1B9A", emoji: "🌶️" },
+            { id: "maharashtra", name: "Maharashtra", image: "https://images.unsplash.com/photo-1567337710282-00832b415979?w=600&q=80", description: "Vada pav capital of India", color: "#BF360C", emoji: "🏙️" },
+            { id: "uttarpradesh", name: "Uttar Pradesh", image: "https://shorturl.at/qM2kO", description: "Awadhi dum biryani & kebabs", color: "#004D40", emoji: "🕌" },
+            { id: "goa", name: "Goa", image: "https://images.unsplash.com/photo-1571406963822-ab1c8a3ac3f4?w=600&q=80", description: "Seafood, vindaloo & feni", color: "#1565C0", emoji: "🌊" },
+            { id: "odisha", name: "Odisha", image: "https://images.unsplash.com/photo-1616530940355-351fabd9524b?w=600&q=80", description: "Dalma, pithas & temple cuisine", color: "#E65100", emoji: "🛕" },
+            { id: "karnataka", name: "Karnataka", image: "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=600&q=80", description: "Bisi bele bath & filter coffee", color: "#33691E", emoji: "☕" },
+            { id: "andhra", name: "Andhra Pradesh", image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&q=80", description: "India's spiciest culinary paradise", color: "#B71C1C", emoji: "🔥" },
+            { id: "himachalpradesh", name: "Himachal Pradesh", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80", description: "Mountain dham & trout fish", color: "#1A237E", emoji: "🏔️" },
+            { id: "assam", name: "Assam", image: "https://images.unsplash.com/photo-1571992613590-87c89e06a396?w=600&q=80", description: "Tea gardens, masor tenga & pork", color: "#1B5E20", emoji: "🫖" },
+            { id: "madhyapradesh", name: "Madhya Pradesh", image: "https://images.unsplash.com/photo-1620766182978-cb4c9c534618?w=600&q=80", description: "Poha, bhutte ka kees & chakki ki shak", color: "#4A148C", emoji: "🌿" },
+            { id: "uttarakhand", name: "Uttarakhand", image: "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80", description: "Kafuli, bhatt ki churkani & jhangore kheer", color: "#004D40", emoji: "🏕️" },
+        ];
+
+        const DISHES_DATA = [
+            { id: "dal-baati", name: "Dal Baati Churma", state: "rajasthan", stateName: "Rajasthan", image: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&q=80", description: "A royal trio of lentil dal, baked wheat balls (baati) and sweet churma, the soul of Rajasthani cuisine.", ingredients: ["Wheat flour", "Urad dal", "Chana dal", "Ghee", "Jaggery", "Cumin seeds", "Asafoetida", "Red chili powder", "Turmeric"], recipe: "1. Knead wheat dough, make balls and bake in oven till golden.\n2. Cook dals with tempering of cumin, asafoetida, chili.\n3. Crush some baati with jaggery and ghee for churma.\n4. Serve hot with generous ghee.", category: "veg", spicyLevel: 3, popular: true },
+            { id: "laal-maas", name: "Laal Maas", state: "rajasthan", stateName: "Rajasthan", image: "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?w=600&q=80", description: "A fiery red mutton curry made with mathania chilies — the pride of Rajasthani non-veg cuisine.", ingredients: ["Mutton", "Mathania red chilies", "Yogurt", "Ghee", "Onions", "Garlic", "Ginger", "Cumin", "Coriander"], recipe: "1. Marinate mutton in yogurt and spices.\n2. Sauté onions golden in ghee.\n3. Add garlic, ginger paste and mathania chili paste.\n4. Cook mutton until tender on low flame.", category: "non-veg", spicyLevel: 5, popular: true },
+            { id: "gatte-ki-sabzi", name: "Gatte Ki Sabzi", state: "rajasthan", stateName: "Rajasthan", image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600&q=80", description: "Gram flour dumplings cooked in tangy yogurt gravy — a Rajasthani specialty born from desert scarcity.", ingredients: ["Besan (gram flour)", "Yogurt", "Turmeric", "Mustard seeds", "Curry leaves", "Red chili", "Ghee", "Coriander"], recipe: "1. Make stiff besan dough with spices and shape into cylinders.\n2. Boil gattas until cooked.\n3. Prepare yogurt gravy with tempering.\n4. Add gattas and simmer.", category: "veg", spicyLevel: 2 },
+            { id: "sadya", name: "Kerala Sadya", state: "kerala", stateName: "Kerala", image: "https://images.unsplash.com/photo-1574484284002-952d92456975?w=600&q=80", description: "A grand banana-leaf feast of 26+ dishes — the pinnacle of Kerala vegetarian cuisine served at Onam.", ingredients: ["Rice", "Sambar", "Rasam", "Avial", "Olan", "Thoran", "Pickle", "Papadum", "Banana", "Payasam"], recipe: "1. Cook all vegetable dishes with coconut.\n2. Prepare sambar and rasam.\n3. Lay banana leaf and serve from left to right.\n4. End with sweet payasam.", category: "veg", spicyLevel: 2, popular: true },
+            { id: "fish-molee", name: "Fish Molee", state: "kerala", stateName: "Kerala", image: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=600&q=80", description: "A delicate coconut milk fish curry with turmeric and green chilies — the gentlest of Kerala fish dishes.", ingredients: ["Fish fillets", "Coconut milk", "Turmeric", "Green chilies", "Onion", "Ginger", "Curry leaves", "Black pepper", "Oil"], recipe: "1. Marinate fish in turmeric and salt.\n2. Sauté onions, ginger and green chilies.\n3. Add coconut milk and simmer.\n4. Add fish and cook gently.", category: "non-veg", spicyLevel: 2, popular: true },
+            { id: "puttu-kadala", name: "Puttu & Kadala Curry", state: "kerala", stateName: "Kerala", image: "https://images.unsplash.com/photo-1567337710282-00832b415979?w=600&q=80", description: "Steamed rice cylinders with spicy black chickpea curry — Kerala's beloved breakfast combination.", ingredients: ["Rice flour", "Coconut (grated)", "Black chickpeas", "Onion", "Coconut milk", "Curry leaves", "Mustard seeds", "Red chili"], recipe: "1. Layer rice flour and coconut in puttu maker and steam.\n2. Cook soaked chickpeas with onion and coconut gravy.\n3. Serve hot together.", category: "veg", spicyLevel: 3 },
+            { id: "butter-chicken", name: "Butter Chicken", state: "punjab", stateName: "Punjab", image: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=600&q=80", description: "The world's most beloved Indian dish — tandoor-roasted chicken in a velvety tomato-butter sauce.", ingredients: ["Chicken", "Butter", "Cream", "Tomatoes", "Onion", "Ginger-garlic paste", "Kashmiri chili", "Garam masala", "Fenugreek leaves"], recipe: "1. Marinate chicken in yogurt and spices, roast in tandoor.\n2. Cook tomato-onion paste with butter.\n3. Add cream and kasuri methi.\n4. Add chicken and simmer gently.", category: "non-veg", spicyLevel: 2, popular: true },
+            { id: "sarson-ka-saag", name: "Sarson Ka Saag", state: "punjab", stateName: "Punjab", image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=600&q=80", description: "Slow-cooked mustard greens with makki ki roti — Punjab's soul food in winter season.", ingredients: ["Mustard leaves", "Spinach", "Cornmeal roti", "Butter", "Onion", "Ginger", "Garlic", "Red chili", "Ghee"], recipe: "1. Cook mustard leaves and spinach together slowly.\n2. Blend partially and temper with onion, ginger, garlic.\n3. Top with white butter and serve with makki roti.", category: "veg", spicyLevel: 2, popular: true },
+            { id: "dhokla", name: "Khaman Dhokla", state: "gujarat", stateName: "Gujarat", image: "https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=600&q=80", description: "Fluffy steamed fermented chickpea cake tempered with mustard and curry leaves — Gujarat's snack icon.", ingredients: ["Besan", "Turmeric", "Eno salt", "Mustard seeds", "Green chilies", "Curry leaves", "Sugar", "Coriander", "Lemon"], recipe: "1. Make smooth besan batter with turmeric, salt.\n2. Add eno salt just before steaming.\n3. Steam for 20 minutes until springy.\n4. Temper with mustard, curry leaves, green chili, sugar.", category: "veg", spicyLevel: 1, popular: true },
+            { id: "hilsa-curry", name: "Shorshe Ilish", state: "westbengal", stateName: "West Bengal", image: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=600&q=80", description: "Hilsa fish cooked in mustard paste — the crown jewel of Bengali cuisine, non-negotiable at festivals.", ingredients: ["Hilsa fish", "Mustard seeds", "Green chilies", "Turmeric", "Mustard oil", "Onion seeds", "Salt"], recipe: "1. Marinate hilsa in turmeric and salt.\n2. Grind mustard seeds and green chilies into paste.\n3. Cook fish in mustard oil with tempering.\n4. Add mustard paste and finish with green chili.", category: "non-veg", spicyLevel: 3, popular: true },
+            { id: "mishti-doi", name: "Mishti Doi", state: "westbengal", stateName: "West Bengal", image: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80", description: "Sweetened fermented yogurt set in earthen pots — Bengal's most beloved dessert for all occasions.", ingredients: ["Full fat milk", "Jaggery", "Sugar", "Yogurt culture", "Cardamom"], recipe: "1. Reduce milk until thickened.\n2. Dissolve jaggery and caramelize lightly.\n3. Mix with milk and cool to lukewarm.\n4. Add culture and set in earthen matkas overnight.", category: "veg", spicyLevel: 1, popular: true },
+            { id: "chettinad-chicken", name: "Chettinad Chicken", state: "tamilnadu", stateName: "Tamil Nadu", image: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=600&q=80", description: "The most complex spice blend in Indian cooking — Chettinad chicken with kalpasi and marathi mokku.", ingredients: ["Chicken", "Kalpasi (stone flower)", "Marathi mokku", "Kandan thippili", "Coconut", "Onion", "Tomato", "Curry leaves", "Black pepper"], recipe: "1. Dry roast and grind 20+ whole spices.\n2. Sauté onion, tomato with curry leaves.\n3. Add marinated chicken with spice paste.\n4. Cook with grated coconut until oil separates.", category: "non-veg", spicyLevel: 5, popular: true },
+            { id: "vada-pav", name: "Vada Pav", state: "maharashtra", stateName: "Maharashtra", image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&q=80", description: "Mumbai's iconic street burger — spiced potato vada in a pav with green and tamarind chutneys.", ingredients: ["Potato", "Pav (bread)", "Besan batter", "Green chutney", "Dry garlic chutney", "Tamarind chutney", "Green chili", "Curry leaves", "Mustard seeds"], recipe: "1. Make spiced potato filling with curry leaf tempering.\n2. Shape into rounds, dip in besan batter, deep fry.\n3. Slice pav, apply all chutneys.\n4. Place hot vada and serve immediately.", category: "veg", spicyLevel: 3, popular: true },
+            { id: "lucknowi-biryani", name: "Lucknowi Biryani", state: "uttarpradesh", stateName: "Uttar Pradesh", image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&q=80", description: "Delicate dum-cooked biryani with saffron, whole spices and tender meat — the Nawabi crown jewel.", ingredients: ["Basmati rice", "Mutton", "Saffron", "Kewra water", "Rose water", "Onions", "Yogurt", "Whole spices", "Ghee", "Milk"], recipe: "1. Parboil basmati with whole spices.\n2. Slow cook marinated mutton.\n3. Layer meat and rice in a handi.\n4. Seal with dough and cook on dum for 45 minutes.", category: "non-veg", spicyLevel: 2, popular: true },
+            { id: "vindaloo", name: "Goan Vindaloo", state: "goa", stateName: "Goa", image: "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?w=600&q=80", description: "Portuguese-Goan pork curry with vinegar and Kashmiri chilies — fiery, tangy and deeply spiced.", ingredients: ["Pork", "Kashmiri chilies", "Vinegar", "Garlic", "Ginger", "Cumin", "Cinnamon", "Cloves", "Black pepper", "Mustard seeds"], recipe: "1. Grind all spices with vinegar into a paste.\n2. Marinate pork overnight.\n3. Sauté onion and garlic.\n4. Add marinated pork and cook until oil floats.", category: "non-veg", spicyLevel: 5, popular: true },
+            { id: "bisi-bele-bath", name: "Bisi Bele Bath", state: "karnataka", stateName: "Karnataka", image: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&q=80", description: "Hot lentil rice with 28-spice masala — Karnataka's ultimate one-pot comfort meal.", ingredients: ["Rice", "Toor dal", "Tamarind", "Vegetables", "Bisi bele bath powder", "Ghee", "Cashews", "Curry leaves", "Onion"], recipe: "1. Cook rice and dal together.\n2. Add tamarind water and vegetables.\n3. Mix in bisi bele bath powder.\n4. Finish with ghee, cashews and curry leaf tempering.", category: "veg", spicyLevel: 3, popular: true },
+            { id: "poha", name: "Indori Poha", state: "madhyapradesh", stateName: "Madhya Pradesh", image: "https://images.unsplash.com/photo-1567337710282-00832b415979?w=600&q=80", description: "Flattened rice with fennel, curry leaves and poha masala — Indore's morning ritual loved across India.", ingredients: ["Poha (flattened rice)", "Onion", "Mustard seeds", "Curry leaves", "Fennel seeds", "Poha masala", "Lemon", "Coriander", "Sev"], recipe: "1. Rinse poha and drain.\n2. Temper mustard, fennel, curry leaves in oil.\n3. Add onion and cook till translucent.\n4. Add poha with spices, mix gently, top with sev and lemon.", category: "veg", spicyLevel: 1, popular: true },
+        ];
+
+        // App Engine
+        const app = {
+            state: {
+                page: 'home',
+                theme: 'light',
+                selectedState: null,
+                selectedDish: null,
+                searchQuery: '',
+                favorites: JSON.parse(localStorage.getItem('rasoi_favs') || '[]'),
+                vegFilter: 'all',
+                spiceFilter: 5
+            },
+
+            init() {
+                this.render();
+                this.renderFooter();
+                window.addEventListener('scroll', () => this.handleScroll());
+                
+                // Hero search handling
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.search-container')) {
+                        document.getElementById('search-results').style.display = 'none';
+                    }
+                });
+
+                // Check system theme
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    this.toggleTheme();
+                }
+            },
+
+            render() {
+                const root = document.getElementById('app-root');
+                root.innerHTML = '';
+                
+                switch(this.state.page) {
+                    case 'home': root.innerHTML = this.templates.home(); break;
+                    case 'states': root.innerHTML = this.templates.states(); break;
+                    case 'state': root.innerHTML = this.templates.stateDetail(this.state.selectedState); break;
+                    case 'dish': root.innerHTML = this.templates.dishDetail(this.state.selectedDish); break;
+                    case 'favs': root.innerHTML = this.templates.favorites(); break;
+                }
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
+
+            navigate(page, params = {}) {
+                this.showLoader();
+                setTimeout(() => {
+                    this.state.page = page;
+                    if (params.state) this.state.selectedState = params.state;
+                    if (params.dish) this.state.selectedDish = params.dish;
+                    this.render();
+                    this.hideLoader();
+                }, 400);
+            },
+
+            toggleTheme() {
+                this.state.theme = this.state.theme === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', this.state.theme);
+                document.getElementById('theme-icon').innerHTML = this.state.theme === 'light' ? this.icons.sun : this.icons.moon;
+            },
+
+            toggleFavorite(id, e) {
+                if (e) e.stopPropagation();
+                if (this.state.favorites.includes(id)) {
+                    this.state.favorites = this.state.favorites.filter(x => x !== id);
+                } else {
+                    this.state.favorites.push(id);
+                }
+                localStorage.setItem('rasoi_favs', JSON.stringify(this.state.favorites));
+                this.render(); // Re-render to update UI
+            },
+
+            handleScroll() {
+                const scrolled = window.scrollY > 64;
+                document.getElementById('navbar').classList.toggle('scrolled', scrolled);
+                document.getElementById('back-top').style.display = window.scrollY > 400 ? 'flex' : 'none';
+                
+                const total = document.documentElement.scrollHeight - window.innerHeight;
+                const progress = (window.scrollY / total) * 100;
+                document.getElementById('scroll-p').style.width = progress + '%';
+            },
+
+            handleSearch(q) {
+                const resultsEl = document.getElementById('search-results');
+                if (!q.trim()) {
+                    resultsEl.style.display = 'none';
+                    return;
+                }
+                
+                const matches = DISHES_DATA.filter(d => 
+                    d.name.toLowerCase().includes(q.toLowerCase()) || 
+                    d.stateName.toLowerCase().includes(q.toLowerCase())
+                ).slice(0, 5);
+
+                if (matches.length > 0) {
+                    resultsEl.innerHTML = matches.map(d => `
+                        <div class="search-item" onclick="app.navigate('dish', {dish: ${JSON.stringify(d).replace(/"/g, '&quot;')}})">
+                            <img src="${d.image}">
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px;">${d.name}</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">${d.stateName}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                    resultsEl.style.display = 'block';
+                } else {
+                    resultsEl.style.display = 'none';
+                }
+            },
+
+            showLoader() { document.getElementById('loader').style.display = 'flex'; },
+            hideLoader() { document.getElementById('loader').style.display = 'none'; },
+
+            icons: {
+                search: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>',
+                heart: (filled) => `<svg width="18" height="18" viewBox="0 0 24 24" fill="${filled ? '#C62828' : 'none'}" stroke="${filled ? '#C62828' : 'currentColor'}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>`,
+                sun: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" /></svg>',
+                moon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>',
+                map: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z" /></svg>',
+                back: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6" /></svg>'
+            },
+
+            components: {
+                spice(level) {
+                    return `<div class="spicy">${[1,2,3,4,5].map(i => `
+                        <svg width="12" height="14" viewBox="0 0 12 14">
+                            <ellipse cx="6" cy="10" rx="3.5" ry="4" fill="${i <= level ? '#FF5722' : '#e0e0e0'}" />
+                            <path d="M6 6C6 6 4 4 5 2C5.5 1 7 0.5 8 1C8 1 7.5 2 6.5 3C5.8 3.8 6 5 6 6" fill="${i <= level ? '#4CAF50' : '#e0e0e0'}" />
+                        </svg>
+                    `).join('')}</div>`;
+                },
+                badge(type) {
+                    const isVeg = type === 'veg';
+                    return `<div class="badge ${isVeg ? 'badge-veg' : 'badge-nonveg'}">
+                        <div class="badge-dot"></div> ${isVeg ? 'Veg' : 'Non-Veg'}
+                    </div>`;
+                },
+                stateCard(state) {
+                    return `
+                        <div class="card fade-in" onclick="event.stopPropagation(); app.navigate('state', {state: ${JSON.stringify(state).replace(/"/g, '&quot;')}})">
+                            <div class="card-img">
+                                <img src="${state.image}">
+                                <div style="position: absolute; inset: 0; background: linear-gradient(to top, ${state.color}88 0%, transparent 60%);"></div>
+                                <div style="position: absolute; bottom: 12px; left: 14px;">
+                                    <div style="font-size: 28px;">${state.emoji}</div>
+                                    <div style="color: #fff; font-weight: 800; font-size: 20px;">${state.name}</div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p>${state.description}</p>
+                                <div style="display: flex; gap: 4px; color: var(--accent); font-size: 13px; font-weight: 600;">
+                                    ${app.icons.map} Explore dishes
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                },
+                dishCard(dish) {
+                    const isFav = app.state.favorites.includes(dish.id);
+                    return `
+                        <div class="card fade-in" onclick="app.navigate('dish', {dish: ${JSON.stringify(dish).replace(/"/g, '&quot;')}})">
+                            <div class="card-img">
+                                <img src="${dish.image}">
+                                <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%);"></div>
+                                <button class="btn btn-round" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9);" 
+                                    onclick="app.toggleFavorite('${dish.id}', event)">
+                                    ${app.icons.heart(isFav)}
+                                </button>
+                                <div style="position: absolute; bottom: 10px; left: 12px;">${this.badge(dish.category)}</div>
+                            </div>
+                            <div class="card-body">
+                                <h3>${dish.name}</h3>
+                                <p>${dish.description}</p>
+                                <div style="display: flex; align-items: center; justify-content: space-between;">
+                                    <span class="tag">${dish.stateName}</span>
+                                    ${this.spice(dish.spicyLevel)}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+
+            templates: {
+                home() {
+                    const popular = DISHES_DATA.slice(0, 4);
+                    const states = STATES_DATA.slice(0, 4);
+                    return `
+                        <div>
+                            <div class="hero">
+                                <div class="hero-bg"></div>
+                                <div class="hero-overlay"></div>
+                                <div class="hero-pattern"></div>
+                                <div class="hero-content">
+                                    <div class="hero-badge">🌍 EXPLORE INDIA'S CULINARY HERITAGE</div>
+                                    <h1>Taste India,<br><span>One State</span> at a Time</h1>
+                                    <p>Journey through 28 states, 100+ authentic dishes, and centuries of spice-laden stories.</p>
+                                    <div style="display: flex; gap: 12px; justify-content: center; flexWrap: wrap;">
+                                        <button class="btn btn-primary" onclick="app.navigate('states')">🗺️ Explore States</button>
+                                        <button class="btn" onclick="document.getElementById('popular').scrollIntoView({behavior: 'smooth'})" style="background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.3);">🍽️ Popular Dishes</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="stats-bar">
+                                <div class="stats-grid">
+                                    <div class="stat-item"><h3>28</h3><p>States Covered</p></div>
+                                    <div class="stat-item"><h3>100+</h3><p>Authentic Dishes</p></div>
+                                    <div class="stat-item"><h3>5k+</h3><p>Years of Spice</p></div>
+                                    <div class="stat-item"><h3>∞</h3><p>Flavors</p></div>
+                                </div>
+                            </div>
+
+                            <section class="section">
+                                <div class="section-header">
+                                    <h2 class="section-title">Featured States</h2>
+                                    <p class="section-sub">Each state is a universe of flavors — pick one to explore</p>
+                                </div>
+                                <div class="grid">${states.map(s => app.components.stateCard(s)).join('')}</div>
+                                <div style="text-align: center; margin-top: 40px;">
+                                    <button class="btn" onclick="app.navigate('states')">View All States →</button>
+                                </div>
+                            </section>
+
+                            <section id="popular" class="section" style="background: var(--surface);">
+                                <div class="section-header">
+                                    <h2 class="section-title">Popular Dishes</h2>
+                                    <p class="section-sub">India's most beloved culinary masterpieces</p>
+                                </div>
+                                <div class="grid">${popular.map(d => app.components.dishCard(d)).join('')}</div>
+                            </section>
+                        </div>
+                    `;
+                },
+
+                states() {
+                    return `
+                        <div class="section" style="padding-top: 100px;">
+                            <h1 class="section-title">🗺️ All States of India</h1>
+                            <p class="section-sub">Click any state to discover its culinary treasures</p>
+                            <div class="grid">${STATES_DATA.map(s => app.components.stateCard(s)).join('')}</div>
+                        </div>
+                    `;
+                },
+
+                stateDetail(state) {
+                    const dishes = DISHES_DATA.filter(d => d.state === state.id);
+                    return `
+                        <div style="padding-top: 64px;">
+                            <div class="banner">
+                                <img src="${state.image}">
+                                <div class="banner-overlay" style="background: linear-gradient(to top, ${state.color}EE 0%, transparent 100%);"></div>
+                                <div class="banner-content">
+                                    <button class="btn" onclick="app.navigate('states')" style="background: rgba(255,255,255,0.2); border: none; color: #fff; margin-bottom: 20px;">
+                                        ${app.icons.back} Back
+                                    </button>
+                                    <div style="font-size: 48px;">${state.emoji}</div>
+                                    <h1 style="font-size: 48px; font-weight: 900;">${state.name}</h1>
+                                    <p style="max-width: 500px;">${state.description}</p>
+                                </div>
+                            </div>
+                            <div class="section">
+                                <div class="section-header">
+                                    <h2 class="section-title">Traditional Dishes</h2>
+                                    <p class="section-sub">${dishes.length} dishes found in this state</p>
+                                </div>
+                                <div class="grid">${dishes.map(d => app.components.dishCard(d)).join('')}</div>
+                            </div>
+                        </div>
+                    `;
+                },
+
+                dishDetail(dish) {
+                    const isFav = app.state.favorites.includes(dish.id);
+                    return `
+                        <div style="padding-top: 64px;">
+                            <div class="banner" style="height: 420px;">
+                                <img src="${dish.image}">
+                                <div class="banner-overlay" style="background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);"></div>
+                                <div class="banner-content">
+                                    <button class="btn" onclick="window.history.back()" style="background: rgba(255,255,255,0.2); border: none; color: #fff; margin-bottom: 20px;">
+                                        ${app.icons.back} Back
+                                    </button>
+                                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                                        ${app.components.badge(dish.category)}
+                                        <span class="tag" style="background: var(--accent); color: #fff;">${dish.stateName}</span>
+                                        <button class="btn" onclick="app.toggleFavorite('${dish.id}')" style="background: ${isFav ? '#C62828' : 'rgba(255,255,255,0.2)'}; color: #fff; border: none;">
+                                            ${app.icons.heart(isFav)} ${isFav ? 'Saved' : 'Save'}
+                                        </button>
+                                    </div>
+                                    <h1 style="font-size: 48px; font-weight: 900;">${dish.name}</h1>
+                                    <p style="max-width: 600px;">${dish.description}</p>
+                                </div>
+                            </div>
+                            <div class="section grid" style="grid-template-columns: 1fr 1fr; gap: 32px;">
+                                <div class="card" style="padding: 28px; cursor: default;">
+                                    <h2 style="margin-bottom: 16px;">🧄 Ingredients</h2>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                        ${dish.ingredients.map(ing => `<span class="tag" style="background: var(--surface); color: var(--text); border: 1px solid var(--card-border);">${ing}</span>`).join('')}
+                                    </div>
+                                </div>
+                                <div class="card" style="padding: 28px; cursor: default;">
+                                    <h2 style="margin-bottom: 16px;">👨‍🍳 Recipe</h2>
+                                    <div style="line-height: 1.8; color: var(--text-muted);">
+                                        ${dish.recipe.split('\n').map(step => `<p style="margin-bottom: 10px;">${step}</p>`).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                },
+
+                favorites() {
+                    const favs = DISHES_DATA.filter(d => app.state.favorites.includes(d.id));
+                    return `
+                        <div class="section" style="padding-top: 100px;">
+                            <h1 class="section-title">❤️ My Favorites</h1>
+                            <p class="section-sub">${favs.length === 0 ? 'Start saving dishes you love!' : `You've saved ${favs.length} delicious dishes`}</p>
+                            ${favs.length === 0 ? `
+                                <div style="text-align: center; padding: 80px 20px;">
+                                    <div style="font-size: 80px;">🍽️</div>
+                                    <h3>No favorites yet</h3>
+                                    <button class="btn btn-primary" onclick="app.navigate('states')" style="margin-top: 20px;">Explore States</button>
+                                </div>
+                            ` : `
+                                <div class="grid">${favs.map(d => app.components.dishCard(d)).join('')}</div>
+                            `}
+                        </div>
+                    `;
+                }
+            },
+
+            renderFooter() {
+                document.getElementById('footer').innerHTML = `
+                    <div class="footer-grid">
+                        <div>
+                            <div class="footer-logo">🍛 Rasoi Bharat</div>
+                            <p style="font-size: 14px; line-height: 1.7;">Celebrating the rich culinary heritage of India — Kashmiri to Kanyakumari, one dish at a time.</p>
+                        </div>
+                        <div>
+                            <div class="footer-title">Explore</div>
+                            <a class="footer-link" onclick="app.navigate('home')">Home</a>
+                            <a class="footer-link" onclick="app.navigate('states')">All States</a>
+                            <a class="footer-link" onclick="app.navigate('favs')">My Favorites</a>
+                        </div>
+                        <div>
+                            <div class="footer-title">Cuisines</div>
+                            <span class="footer-link">North Indian</span>
+                            <span class="footer-link">South Indian</span>
+                            <span class="footer-link">Street Food</span>
+                        </div>
+                    </div>
+                    <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; text-align: center; font-size: 13px; color: rgba(255,255,255,0.3);">
+                        Made with ❤️ in India · Rasoi Bharat © 2024
+                    </div>
+                `;
+            }
+        };
+
+        // Initialize App
+        app.init();
+    </script>
+</body>
+</html>
